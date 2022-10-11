@@ -24,6 +24,7 @@
 ##### Ten-genes signature evaluation
 
 library(randomForest)
+library(ggplot2)
 
 performance <- function(M, tp = "topleft") {
 	if (tp == "topleft") {
@@ -146,4 +147,52 @@ P
 
 ##### Volcano plots (DEGs)
 
-# 
+# RNA-seq DEGs
+
+exprs <- read.delim("~/ovCancer-signature/data/Provac_ResistantVsSensitive_raw.txt", stringsAsFactors = FALSE)
+
+exprs$Regulation <- "NR"
+exprs$Regulation[exprs$log2FoldChange > 1 & exprs$padj < 0.05] <- "UP"
+exprs$Regulation[exprs$log2FoldChange < -1 & exprs$padj < 0.05] <- "DOWN"
+cols <- c("UP" = "red2", "DOWN" = "blue", "NR" = "grey60")
+
+top <- exprs$symbol[exprs$Tier == "Top42"]
+top.degs <- exprs[exprs$Tier == "Top42" & exprs$padj < 0.001,]
+up <- exprs[exprs$log2FoldChange > 1 & exprs$padj < 0.001,]
+down <- exprs[exprs$log2FoldChange < -1 & exprs$padj < 0.001,]
+
+pdf("Provac_RNAseq_volcano.pdf", width = 20, height = 10)
+ggplot(data = exprs,
+       aes(x = log2FoldChange,
+           y = log10padj)) +
+  theme_bw() +
+  theme(panel.border = element_blank(),
+    panel.grid.major = element_line(),
+    panel.grid.minor = element_blank(),
+    axis.line = element_line(colour = "black"),
+    axis.text = element_text(size = 26),
+    axis.title = element_text(size = 28, face = "bold"),
+    legend.key.size = unit(1, "cm"),
+    legend.text = element_text(size = 26),
+    legend.title = element_text(size = 28)) +
+  geom_point(aes(colour = Regulation),
+             alpha = 0.8,
+             shape = 16,
+             size = 3) +
+  scale_colour_manual(values = cols) + 
+  geom_hline(yintercept = -log10(0.05),
+             linetype = "dashed") +
+  geom_vline(xintercept = c(log2(0.5), log2(2)),
+             linetype = "dashed") +
+  annotate("text", x = -3.8, y = 1.42, size = 8,
+           label = "P.adj = 0.05",
+           parse = FALSE) +
+  labs(x = "log2(Resistant/Sensitive)", y = "-log10(BH-adjusted P-value)") +
+  scale_x_continuous(breaks = c(seq(-10, 10, 1)),     
+                     limits = c(-4, 4))
+dev.off()
+
+# HT RT-qPCR DEGs
+
+W <- read.delim("~/ovCancer-signature/data/Provac_RNAseq_RTqPCR_summary.txt", stringsAsFactors = FALSE)
+
