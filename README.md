@@ -5,4 +5,4 @@ High-grade serous ovarian cancer (HGSOC) has poor survival rates due to a combin
 
 ## Reference
 
-Buttarelli M, Ciucci A, Palluzzi F, Raspaglio G, Marchetti C, Perrone E, Minucci A, Giacò L, Fagotti A, Scambia G, Gallo D. **Identification of a novel gene signature predicting response to first-line chemotherapy in BRCA wild-type high-grade serous ovarian cancer patients**. *Journal of Experimental & Clinical Cancer Research* 2022, 41(1), 1-17. PMID: 35120576, doi: https://doi.org/10.1186/s13046-022-02265-w
+Buttarelli M, Ciucci A, Palluzzi F, Raspaglio G, Marchetti C, Perrone E, Minucci A, Giacò L, Fagotti A, Scambia G, Gallo D. **Identification of a novel gene signature predicting response to first-line chemotherapy in BRCA wild-type high-grade serous ovarian cancer patients**. *Journal of Experimental & Clinical Cancer Research* 2022, 41(1):1-17. PMID: 35120576, doi: https://doi.org/10.1186/s13046-022-02265-w
