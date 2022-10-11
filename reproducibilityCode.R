@@ -1,4 +1,4 @@
-# ovCancer-signature - Random Forest Classifier module
+# ovCancer-signature - Reproducibility code
 
 #  Copyright (C) 2022 Fernando Palluzzi
 #  e-mail: <fernando.palluzzi@gmail.com>
@@ -21,9 +21,9 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-library(randomForest)
+##### Ten-genes signature evaluation
 
-load("~/ovCancer-signature/data/")
+library(randomForest)
 
 performance <- function(M, tp = "topleft") {
 	if (tp == "topleft") {
@@ -45,41 +45,11 @@ performance <- function(M, tp = "topleft") {
 	return(list(Se = Se, Sp = Sp, PPV = PPV, F1 = F1, A = A))
 }
 
-# RNA-seq DEGs from primary HGSOC cell lines
-tset <- read.delim("~/ovCancer-signature/Provac_RNAseq_DEGs.txt", stringsAsFactors = FALSE)
 
-# HT RT-qPCR DEGs from primary HGSOC cell lines
-#vset <- read.delim("~/ovCancer-signature/HGSOC_primary_cellLines_RTqPCR_DEGs.txt", stringsAsFactors = FALSE)
+# Importing RFC dataset
 
-names(tset)[c(19, 23)] <- c("LINC01816", "NOL4L")
-
-data <- tset[, -1]
-
-
-# Defining case/control vector
-
-data$y <- c(rep(0, 25), rep(1, 19))
-
-
-# Computing Brier scores
-
-set.seed(100)
-
-L <- GenerateLearningsets(n = nrow(data), data$y,
-	                      method = "CV",
-	                      fold = 4,
-	                      strat = TRUE)
-
-C <- classification(as.matrix(data[, -43]), data$y,
-	                learningsets = L,
-	                classifier = "rfCMA")
-
-E <- evaluation(C, scheme = "observationwise", measure = "brier score")
-
-data$E <- E@score
-data$sample <- tset$sample
-data$K <- randomString(1, nrow(data), alphabet = 'ABCD')
-data <- data[data$E <= 1,]
+load("~/ovCancer-signature/data/Provac_RFC10.RData")
+data <- rfc10.provac$data
 
 
 ##### Defining training sets
@@ -172,3 +142,8 @@ confusion
 
 P <- performance(confusion)
 P
+
+
+##### Volcano plots (DEGs)
+
+# 
