@@ -32,7 +32,8 @@ data <- read.delim(args[1], stringsAsFactors = FALSE)
 # Significance level
 alpha <- as.numeric(args[2])
 
-# Wilcoxon test
+
+##### Wilcoxon test
 
 W <- data.frame(symbol = vector(), W = vector(), estimate = vector(), ci95 = vector(), pvalue = vector())
 
@@ -45,5 +46,6 @@ for (j in ncol(data)-1) {
 	                         pvalue = w$p.value))
 }
 
+# P-value filter
 top <- W$symbol[W$pvalue < alpha]
 top
