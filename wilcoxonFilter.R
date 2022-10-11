@@ -21,9 +21,20 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
+##### Reading arguments from command line
+
+# The last column of the data.frame must be a binary vector y,
+# representing cases (y = 1) and controls (y = 0).
+
+args <- (commandArgs(TRUE))
+data <- read.delim(args[1], stringsAsFactors = FALSE)
+
+# Wilcoxon test
+
 W <- data.frame(symbol = vector(), W = vector(), estimate = vector(), ci95 = vector(), pvalue = vector())
-for (j in 2:43) {
-	w <- wilcox.test(data[1:25, j], data[26:44, j], conf.int = TRUE)
+
+for (j in ncol(data)-1) {
+	w <- wilcox.test(data[data$y == 1, j], data[data$y == 0, j], conf.int = TRUE)
 	W <- rbind(W, data.frame(symbol = colnames(data)[j],
 	                         W = w$statistic,
 	                         estimate = w$estimate,
