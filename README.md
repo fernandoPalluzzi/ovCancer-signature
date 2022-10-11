@@ -1,2 +1,8 @@
 # Ovarian Cancer Transcriptional Signature
 Identification of high-grade serous ovarian cancer signature in wild-type BRCA1/BRCA2 patients
+
+High-grade serous ovarian cancer (HGSOC) has poor survival rates due to a combination of diagnosis at advanced stage and disease recurrence as a result of chemotherapy resistance. A cohort of wild-type BRCA (BRCAwt) HGSOC patients were profiled by RNA sequencing (RNA-seq) and sub-grouped according to platinum-free interval (PFI) into sensitive (PFI > 12 months) and resistant (PFI < 6 months). Differential expression analysis of RNA-seq data identified a panel of 42 genes discriminating sensitive and resistant BRCAwt HGSOC patients, while pathway analysis pointed out the immune system as a possible driver of chemotherapy response. The 42-genes panel was tested by high-throughput quantitative real-time PCR in a validation cohort. Through the use of random forest classifiers and robust high-dimensional model fitting heuristics, we found a signature of 10 genes (CKB, CTNNBL1, GNG11, IGFBP7, PLCG2, RNF24, SLC15A3, TSPAN31, TTI1, and UQCC1) predictive of response to first-line chemotherapy, with three of them (CTNNBL1, RNF24, and TTI1) detected as cell-autonomous contributors to tumour resistance
+
+## Reference
+
+Buttarelli, M., Ciucci, A., Palluzzi, F., Raspaglio, G., Marchetti, C., Perrone, E., ... & Gallo, D. (2022). Identification of a novel gene signature predicting response to first-line chemotherapy in BRCA wild-type high-grade serous ovarian cancer patients. Journal of Experimental & Clinical Cancer Research, 41(1), 1-17. PMID: 35120576, doi: https://doi.org/10.1186/s13046-022-02265-w
