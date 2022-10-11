@@ -1,4 +1,4 @@
-# Import required libraries
+##### Import required libraries
 
 library(randomForest)
 library(e1071)
@@ -67,7 +67,7 @@ performance <- function(M, tp = "topleft") {
 tset <- read.delim("~/ovCancer-signature/Provac_RNAseq_DEGs.txt", stringsAsFactors = FALSE)
 
 # HT RT-qPCR DEGs from primary HGSOC cell lines
-vset <- read.delim("~/ovCancer-signature/HGSOC_primary_cellLines_RTqPCR_DEGs.txt", stringsAsFactors = FALSE)
+#vset <- read.delim("~/ovCancer-signature/HGSOC_primary_cellLines_RTqPCR_DEGs.txt", stringsAsFactors = FALSE)
 
 names(tset)[c(19, 23)] <- c("LINC01816", "NOL4L")
 
@@ -100,7 +100,7 @@ data$K <- randomString(1, nrow(data), alphabet = 'ABCD')
 data <- data[data$E <= 1,]
 
 
-# Defining training sets
+##### Defining training sets
 
 T1 <- data[data$K == "A" | data$K == "B" | data$K == "C",]
 T2 <- data[data$K == "A" | data$K == "B" | data$K == "D",]
@@ -112,7 +112,10 @@ T4 <- data[data$K == "B" | data$K == "C" | data$K == "A",]
 n <- 5000
 
 
-# Model training
+##### Model training
+
+if (FALSE) {
+# Top-42 DEGs
 
 model <- formula(paste0(c("as.factor(y) ~ ABDHD5 + ACVR1B + ALOX5AP + ",
                           "C3AR1 + CD4 + CKB + CPZ + CTNNBL1 + ",
@@ -123,6 +126,13 @@ model <- formula(paste0(c("as.factor(y) ~ ABDHD5 + ACVR1B + ALOX5AP + ",
                           "SLC15A3 + STOM + TACC1 + TARBP2 + TMEM140 + ",
                           "TNFSF13B + TPP1 + TRPM2 + TSPAN31 + TTI1 + ",
                           "UQCC1 + WDPCP + ZNF738"), collapse = ""))
+}
+
+# Best predictors
+
+model <- formula(paste0(c("as.factor(y) ~ UQCC1 + CKB + TSPAN31 + ",
+                          "GNG11 + PLCG2 + IGFBP7 + SLC15A3 + CTNNBL1 + ",
+                          "RNF24 + TTI1"), collapse = ""))
 
 F1 <- randomForest(model, data = T1, ntree = n, importance = TRUE, mtry = 3)
 F2 <- randomForest(model, data = T2, ntree = n, importance = TRUE, mtry = 3)
@@ -130,7 +140,7 @@ F3 <- randomForest(model, data = T3, ntree = n, importance = TRUE, mtry = 3)
 F4 <- randomForest(model, data = T4, ntree = n, importance = TRUE, mtry = 3)
 
 
-# Defining validation sets
+##### Defining validation sets
 
 V1 <- data[data$K == "D",]
 V2 <- data[data$K == "C",]
@@ -138,7 +148,7 @@ V3 <- data[data$K == "B",]
 V4 <- data[data$K == "A",]
 
 
-# Defining ranking by importance
+##### Defining ranking by importance
 
 R1 <- data.frame(importance(F1))[, 3:4]
 R2 <- data.frame(importance(F2))[, 3:4]
@@ -150,14 +160,17 @@ R$MDA <- apply(R[, c(1, 3, 5, 7)], 1, mean)
 R$MDG <- apply(R[, c(2, 4, 6, 8)], 1, mean)
 R <- R[, c(9, 10)]
 
+# Minmax normalization
 R$fA <- 100*(R$MDA - min(R$MDA))/(max(R$MDA) - min(R$MDA))
 R$fG <- 100*(R$MDG - min(R$MDG))/(max(R$MDG) - min(R$MDG))
+
+# Final score (f)
 R$f <- apply(R[, c(3, 4)], 1, mean)
 R <- R[order(R$f, decreasing = TRUE),]
 R
 
 
-# Prediction and performances
+##### Prediction and performances
 
 C1 <- predict(F1, V1)
 C2 <- predict(F2, V2)
