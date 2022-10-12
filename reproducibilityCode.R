@@ -24,7 +24,12 @@
 ##### Ten-genes signature evaluation
 
 library(randomForest)
+library(ComplexHeatmap)
+library(circlize)
 library(ggplot2)
+library(stringr)
+library(dplyr)
+
 
 performance <- function(M, tp = "topleft") {
 	if (tp == "topleft") {
@@ -145,6 +150,41 @@ P <- performance(confusion)
 P
 
 
+##### RNA-seq DEGs Heatmap (top-42 markers)
+
+x <- log2(exprs[, 2:15] + 1)
+x <- x[exprs$symbol %in% top,]
+x <- t(apply(x, 1, scale))
+rownames(x) <- exprs$symbol[exprs$symbol %in% top]
+colnames(x) <- colnames(exprs[, c(2:15)])
+x <- x[, c(1:3, 7, 4:6, 8:10, 14, 11:13)]
+colnames(x) <- c("1", "2", "3", "4", "5", "6", "7",
+                 "8", "9", "10", "11", "12", "13", "14")
+
+pdf("Provac_RNAseq_Top42.pdf", width = 15, height = 10)
+colors <- list(Phenotype = c("Sensitive" = "lightblue", "Resistant" = "gold"))
+hann <- HeatmapAnnotation(Phenotype = c(rep("Sensitive", 7), rep("Resistant", 7)),
+                          col = colors,
+                          show_legend = c(FALSE, FALSE))
+col_fun = colorRamp2(c(-2, -1, 0, 1, 2), c("blue", "blue", "white", "red", "red"))
+Heatmap(as.matrix(x), name = "Standardized\nlog2(counts)",
+        top_annotation = hann,
+        row_names_gp = gpar(fontsize = 14),
+        column_names_gp = gpar(fontsize = 24),
+        column_names_rot = 0,
+        heatmap_legend_param = list(title_gp = gpar(col = "black", fontsize = 16),
+                                    labels_gp = gpar(col = "black", fontsize = 16),
+                                    direction = "horizontal"))
+pheno <- Legend(labels = c("Sensitive", "Resistant"),
+                legend_gp = gpar(fill = c("lightblue", "gold")),
+                title = "Phenotype",
+                title_gp = gpar(col = "black", fontsize = 16),
+                labels_gp = gpar(col = "black", fontsize = 16),
+                direction = "horizontal")
+draw(pheno, x = unit(36, "cm"), y = unit(15, "cm"))
+dev.off()
+
+
 ##### Volcano plots (DEGs)
 
 # RNA-seq DEGs
@@ -196,3 +236,119 @@ dev.off()
 
 W <- read.delim("~/ovCancer-signature/data/Provac_RNAseq_RTqPCR_summary.txt", stringsAsFactors = FALSE)
 
+W$Regulation <- "NR"
+W$Regulation[W$wPvalue <= 0.05 & W$shift > 0] <- "UP"
+W$Regulation[W$wPvalue <= 0.05 & W$shift < 0] <- "DOWN"
+
+cols <- c("UP" = "red2", "DOWN" = "blue", "NR" = "grey60")
+
+pdf("Provac_RTqPCR_volcano.png", width = 20, height = 10)
+lbl <- ifelse(W$symbol %in% c("GNG11", "RNF24", "UQCC1", "CTNNBL1",
+                              "PLCG2", "TTI1", "IGFBP7", "SLC15A3",
+                              "TSPAN31", "CKB"), W$symbol, "")
+ggplot(data = W,
+       aes(x = shift,
+           y = -log10(wPvalue))) +
+  theme_bw() +
+  theme(panel.border = element_blank(),
+    panel.grid.major = element_line(),
+    panel.grid.minor = element_blank(),
+    axis.line = element_line(colour = "black"),
+    axis.text = element_text(size = 26),
+    axis.title = element_text(size = 22, face = "bold"),
+    legend.key.size = unit(1, "cm"),
+    legend.text = element_text(size = 26),
+    legend.title = element_text(size = 26)) +
+  geom_point(aes(colour = Regulation),
+             alpha = 0.8,
+             shape = 16,
+             size = 5) +
+  scale_colour_manual(values = cols) + 
+  geom_hline(yintercept = -log10(0.05),
+             linetype = "dashed") +
+  geom_vline(xintercept = c(-0.25, 0.25),
+             linetype = "dashed") +
+  annotate("text", x = -1.2, y = 1.35, size = 7,
+           label = "P-value = 0.05",
+           parse = FALSE) +
+  geom_text(label = lbl, cex = 6, nudge_x = -0.04, nudge_y = 0.06, show.legend = FALSE) +
+  labs(x = "Wilcoxon estimated shift", y = "-log10(P-value)") +
+  scale_x_continuous(breaks = c(seq(-2, 2, 0.25)),
+                     limits = c(-1.25, 1.25))
+dev.off()
+
+
+##### Polar bar plot of the top-10 markers
+
+x <- data.frame(Gene = c("GNG11", "RNF24", "UQCC1", "CTNNBL1", "PLCG2",
+                         "TTI1", "IGFBP7", "SLC15A3", "TSPAN31", "CKB"),
+                Estimate = c(-1.09, 0.59, 0.54, 0.53, -0.91, 0.59, -0.42,
+                             -0.98, 0.53, 0.94),
+                P = c(0.00475, 0.00498, 0.01013, 0.01781, 0.02592,
+                      0.02751, 0.02837, 0.02926, 0.04038, 0.04040),
+                CI95 = c("-1.71, -0.34", "0.20, 1.12", "0.15, 0.93",
+                         "0.05, 1.03", "-1.70, -0.13", "0.06, 1.21",
+                         "-0.89, -0.06", "-1.75, -0.17", "0.03, 0.98",
+                         "0.05, 1.79"),
+                Marker = c("W", "WP", "W", "WP", "W", "WP", "W", "W", "W", "W"),
+                Human = c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+                Primary = c(0, 1, 0, 1, 0, 1, 0, 0, 0, 0),
+                Stabilized = c(0, 0, 0, 1, 0, 0, 0, 0, 0, 0))
+x <- x[x$Human == 1,]
+x$N <- apply(x[, 6:7], 1, sum)
+
+pdf("Provac_polar_barplot.pdf", width = 20, height = 18)
+plt <- ggplot(x) +
+  theme_bw() +
+  theme(panel.border = element_blank(),
+  panel.grid.major = element_line(),
+  panel.grid.minor = element_blank(),
+  axis.line = element_line(colour = "black"),
+  axis.text = element_text(size = c(29, 29, 29, 29, 29, 29, 29, 26, 29, 29)),
+  axis.text.y = element_blank(),
+  axis.title = element_text(size = 36, face = "bold"),
+  legend.key.size = unit(1, "cm"),
+  legend.text = element_text(size = 26),
+  legend.title = element_text(size = 30)) +
+  geom_hline(
+    aes(yintercept = y), 
+    data.frame(y = c(0, 1, 1.3, 2)),
+    color = c("grey", "grey", "red3", "grey")
+  ) + 
+  geom_col(
+    aes(
+      x = reorder(str_wrap(Gene, 5), N),
+      y = N,
+      fill = Estimate
+    ),
+    position = "dodge2",
+    show.legend = TRUE,
+    alpha = 0.9
+  ) +
+  geom_point(
+    aes(
+      x = reorder(str_wrap(Gene, 7), -log10(P)),
+      y = -log10(P)
+    ),
+    size = 4,
+    color = "gray12"
+  ) +
+  geom_segment(
+    aes(
+      x = reorder(str_wrap(Gene, 5), -log10(P)),
+      y = -1,
+      xend = reorder(str_wrap(Gene, 5), -log10(P)),
+      yend = 2
+    ),
+    linetype = "dashed",
+    color = "gray12"
+  ) + 
+  scale_fill_gradientn(
+    "Shift",
+     colours = c("deepskyblue", "white", "darkorange"),
+     limits = c(-1.1, 1.1)
+  ) +
+  labs(x = "Selected markers", y = "1: Patients,   2: Patients and OV.GEM") +
+  coord_polar()
+plt
+dev.off()
